@@ -12,14 +12,6 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            const { graphql } = require("@octokit/graphql");
-
-            const graphqlWithAuth = graphql.defaults({
-              headers: {
-                authorization: `token ${process.env.GITHUB_TOKEN}`,
-              },
-            });
-
             const query = `
               query($owner: String!, $name: String!) {
                 repository(owner: $owner, name: $name) {
@@ -44,7 +36,7 @@ jobs:
               }
             `;
 
-            const { repository } = await graphqlWithAuth(query, {
+            const { repository } = await github.graphql(query, {
               owner: context.repo.owner,
               name: context.repo.repo,
             });
@@ -57,5 +49,3 @@ jobs:
               console.log(`Message: ${commit.messageHeadline}`);
               console.log('---');
             }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
