@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Fetch last 5 commits
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           script: |
             const query = `
