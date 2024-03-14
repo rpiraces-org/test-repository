@@ -1,0 +1,61 @@
+name: Fetch last 5 commits
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  fetch_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch last 5 commits
+        uses: actions/github-script@v5
+        with:
+          script: |
+            const { graphql } = require("@octokit/graphql");
+
+            const graphqlWithAuth = graphql.defaults({
+              headers: {
+                authorization: `token ${process.env.GITHUB_TOKEN}`,
+              },
+            });
+
+            const query = `
+              query($owner: String!, $name: String!) {
+                repository(owner: $owner, name: $name) {
+                  ref(qualifiedName: "main") {
+                    target {
+                      ... on Commit {
+                        history(first: 5) {
+                          nodes {
+                            messageHeadline
+                            oid
+                            committedDate
+                            author {
+                              name
+                              email
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const { repository } = await graphqlWithAuth(query, {
+              owner: context.repo.owner,
+              name: context.repo.repo,
+            });
+
+            const commits = repository.ref.target.history.nodes;
+            for (const commit of commits) {
+              console.log(`Commit: ${commit.oid}`);
+              console.log(`Author: ${commit.author.name} <${commit.author.email}>`);
+              console.log(`Date: ${commit.committedDate}`);
+              console.log(`Message: ${commit.messageHeadline}`);
+              console.log('---');
+            }
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
