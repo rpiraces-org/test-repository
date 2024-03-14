@@ -1,0 +1,25 @@
+name: Label Discarded Issue
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  label-issue:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Label as discarded
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueNumber = context.issue.number;
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+
+            await github.rest.issues.addLabels({
+              owner: repoOwner,
+              repo: repoName,
+              issue_number: issueNumber,
+              labels: ['discarded']
+            });
